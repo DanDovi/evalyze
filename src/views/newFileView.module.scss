@@ -1,0 +1,62 @@
+.newFileView {
+  padding: var(--spacing-sm);
+
+
+  h1 {
+    margin: 0 0 var(--spacing-md) 0;
+  }
+
+  form {
+    > * + * {
+      margin-top: var(--spacing-sm);
+    }
+
+    fieldset {
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
+  }
+}
+
+.videoPreview {
+  width: 100%;
+  max-width: 800px;
+
+  height: auto;
+
+  border-radius: var(--border-radius);
+}
+
+.inputSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.filePathIndicator {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-700);
+  margin-top: var(--spacing-xxs);
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.filePathIndicator:focus {
+  outline: none;
+}
+
+.eventRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+}

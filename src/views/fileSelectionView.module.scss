@@ -1,0 +1,48 @@
+.fileSelectionView {
+    padding: var(--spacing-sm);
+}
+
+.files {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--spacing-md);
+    //background-color: var(--color-white);
+
+}
+
+.newFileLink {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius);
+    color: var(--color-white);
+    background-color: var(--color-primary);
+    display: flex;
+    align-items: center;
+
+    gap: var(--spacing-xs);
+    width: min-content;
+
+    white-space: nowrap;
+    text-decoration: none;
+
+    margin-bottom: var(--spacing-md);
+
+    &:hover {
+        background-color: var(--color-secondary);
+    }
+}
+
+.selectableFile {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    background-color: var(--color-white);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border 0.1s;
+
+    &:hover {
+        border: 2px solid var(--color-secondary);
+    }
+}

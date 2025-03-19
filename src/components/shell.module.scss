@@ -1,0 +1,63 @@
+.shell {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  position: relative;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--color-primary);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  height: 100vh;
+  box-sizing: border-box;
+
+  width: 4rem;
+
+  transition: width 0.3s;
+
+  overflow: hidden;
+
+  > * {
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  &.open {
+    width: 200px;
+
+    > * {
+      opacity: 1;
+    }
+  }
+
+  .openButton {
+
+
+    opacity: 1;
+
+    background-color: var(--color-secondary);
+    padding: var(--spacing-xs);
+    aspect-ratio: 1;
+    width: 2rem;
+    height: auto;
+    border-radius: var(--border-radius);
+  }
+}
+
+.homeButton {
+  color: var(--color-white);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  text-decoration: none;
+
+  white-space: nowrap;
+}
+
+.outlet {
+  height: 100vh;
+  overflow-y: auto;
+}

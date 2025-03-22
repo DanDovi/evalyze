@@ -3,6 +3,7 @@ import { FileSelectionView } from "./views/fileSelectionView.tsx";
 import { routes } from "./routes.ts";
 import { NewFileView } from "./views/newFileView.tsx";
 import App from "./App.tsx";
+import { AnalysisView } from "./views/analysisView.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -14,8 +15,12 @@ export const router = createBrowserRouter([
         element: <FileSelectionView />,
       },
       {
-        path: routes.newFile,
+        path: routes.newAnalysis,
         element: <NewFileView />,
+      },
+      {
+        path: routes.analysis,
+        element: <AnalysisView />,
       },
       {
         path: "*",

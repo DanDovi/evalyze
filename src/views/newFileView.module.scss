@@ -21,7 +21,7 @@
 
 .videoPreview {
   width: 100%;
-  max-width: 800px;
+  max-width: 650px;
 
   height: auto;
 
@@ -59,4 +59,16 @@
   flex-direction: column;
   gap: var(--spacing-sm);
   align-items: flex-start;
+}
+
+.deleteButton {
+  background-color: var(--color-negative);
+}
+
+.addEventButton {
+  background-color: var(--color-secondary);
+}
+
+.submitButton {
+  margin-top: var(--spacing-sm);
 }

@@ -9,9 +9,8 @@ export const KeySelectInput = forwardRef<
 >((props, ref) => {
   return (
     <SelectInput ref={ref} {...props}>
-      <option value="none">None</option>
       {keys.map((key) => (
-        <option value={key}>{key}</option>
+        <option key={key} value={key}>{key}</option>
       ))}
     </SelectInput>
   );

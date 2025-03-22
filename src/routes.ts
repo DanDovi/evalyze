@@ -1,3 +1,4 @@
 export const routes = {
-  newFile: "/new-file",
+  newAnalysis: "/new-analysis",
+  analysis: "/analysis/:id",
 }

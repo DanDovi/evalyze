@@ -1,13 +1,14 @@
-import { useMemo, useState, useCallback } from "react";
-import { useLocation } from "react-router";
+import { useMemo, useState, useCallback, useRef } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiTrash } from "react-icons/fi";
 import { KeySelectInput } from "../components/keySelectInput.tsx";
 import { SelectInput } from "../components/selectInput.tsx";
 import { toast } from "react-toastify";
 
 import styles from "./newFileView.module.scss";
-
+import { addAnalysis, AnalysisEventType } from "../state/fileController.ts";
+import { routes } from "../routes.ts";
 
 const getFileNameFromPath = (path: string) => {
   const parts = path.split("/");
@@ -18,14 +19,14 @@ interface INavigationState {
   file?: string;
 }
 
-interface IEventControl {
-  name: string;
-  key: string;
-  type: "single" | "range";
+type IEventControl = Omit<AnalysisEventType, "id" | "analysisId"> & {
+  formKey: number;
 }
 
 const validateEvents = (events: IEventControl[]) => {
-  const trimmedNames = events.map((event) => event.name.trim().trim().toLowerCase());
+  const trimmedNames = events.map((event) =>
+    event.name.trim().trim().toLowerCase(),
+  );
   const allEventsHaveName = trimmedNames.every((name) => name.length > 0);
 
   if (!allEventsHaveName) {
@@ -37,7 +38,7 @@ const validateEvents = (events: IEventControl[]) => {
   });
 
   const keysAreUnique = events.every((event, i) => {
-    return events.findIndex((e) => e.key === event.key) === i;
+    return events.findIndex((e) => e.keyboardKey === event.keyboardKey) === i;
   });
 
   const errors = [];
@@ -55,6 +56,8 @@ const validateEvents = (events: IEventControl[]) => {
 
 export const NewFileView = () => {
   const { state } = useLocation() as { state: INavigationState };
+  const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const path = (state as INavigationState).file ?? "";
 
@@ -68,7 +71,10 @@ export const NewFileView = () => {
   }, [state.file]);
 
   const onAddEvent = useCallback(() => {
-    setEvents([...events, { name: "", key: "a", type: "single" }]);
+    const maxFormKey = events.reduce((max, event) => {
+      return event.formKey > max ? event.formKey : max;
+    }, 0);
+    setEvents([...events, { name: "", keyboardKey: "a", category: "single", formKey: maxFormKey + 1 }]);
   }, [events]);
 
   const onDeleteEvent = useCallback((index: number) => {
@@ -79,15 +85,34 @@ export const NewFileView = () => {
     });
   }, []);
 
-  const onSubmit = useCallback(() => {
-    const errors = validateEvents(events);
-
-    if (errors.length > 0) {
-      errors.forEach((error) => {toast.error(error)})
+  const onSubmit = useCallback(async () => {
+    if (!fileName) {
+      toast.error("Analysis must have a name");
       return;
     }
 
+    const errors = validateEvents(events);
+
+    if (errors.length > 0) {
+      errors.forEach((error) => {
+        toast.error(error);
+      });
+      return;
+    }
+
+    const videoDuration = videoRef.current?.duration ?? 0;
+
+    const analysisToCreate = {
+      name: fileName,
+      path,
+      duration: videoDuration,
+      eventTypes: events.map(({formKey, ...event}) => event),
+    };
+
+    const id = await addAnalysis(analysisToCreate);
+
     toast.success("Analysis created");
+    navigate(routes.analysis.replace(':id', id.toString(10)));
   }, [fileName, events]);
 
   return (
@@ -116,13 +141,18 @@ export const NewFileView = () => {
         </div>
         <figure>
           <figcaption>Video preview</figcaption>
-          <video className={styles.videoPreview} src={videoSrc} controls />
+          <video
+            className={styles.videoPreview}
+            src={videoSrc}
+            controls
+            ref={videoRef}
+          />
         </figure>
         <fieldset className={styles.events}>
           <legend>Events</legend>
           {events.map((event, i) => {
-            const { name, key, type } = event;
-            const onEventChange = (key: string, value: string) => {
+            const { name, keyboardKey, category, formKey } = event;
+            const onEventChange = (key: keyof IEventControl, value: string) => {
               setEvents((prev) => {
                 const newEvents = [...prev];
                 newEvents[i] = {
@@ -134,7 +164,7 @@ export const NewFileView = () => {
             };
 
             return (
-              <div className={styles.eventRow}>
+              <div key={formKey} className={styles.eventRow}>
                 <span>
                   <label htmlFor={`event.${i}.name`}>Event Name</label>
                   <input
@@ -149,35 +179,45 @@ export const NewFileView = () => {
                   <label htmlFor={`event.${i}.type`}>Event Type</label>
                   <SelectInput
                     id={`event.${i}.type`}
-                    value={type}
-                    onChange={(e) => onEventChange("type", e.target.value)}
+                    value={category}
+                    onChange={(e) => onEventChange("category", e.target.value)}
                   >
-                    <option value="single">Single</option>
-                    <option value="range">Range</option>
+                    <option key='single' value="single">Single</option>
+                    <option key='range' value="range">Range</option>
                   </SelectInput>
                 </span>
                 <span>
                   <label htmlFor={`event.${i}.key`}>Event Key</label>
                   <KeySelectInput
                     id={`event.${i}.key`}
-                    value={key}
-                    onChange={(e) => onEventChange("key", e.target.value)}
+                    value={keyboardKey}
+                    onChange={(e) => onEventChange("keyboardKey", e.target.value)}
                   />
                 </span>
                 <span>
-                  <button type="button" onClick={() => onDeleteEvent(i)}>
-                    Delete
+                  <button
+                    className={styles.deleteButton}
+                    type="button"
+                    onClick={() => onDeleteEvent(i)}
+                  >
+                    <FiTrash size={20} />
                   </button>
                 </span>
               </div>
             );
           })}
-          <button type="button" onClick={onAddEvent}>
+          <button
+            className={styles.addEventButton}
+            type="button"
+            onClick={onAddEvent}
+          >
             <span>Add event</span> <FiPlus />
           </button>
         </fieldset>
       </form>
-      <button onClick={onSubmit}>Submit</button>
+      <button className={styles.submitButton} onClick={onSubmit}>
+        Submit
+      </button>
     </div>
   );
 };

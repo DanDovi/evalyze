@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getFiles } from "../state/fileController";
+import { Analysis, getAnalyses } from "../state/fileController";
 
 import { useNavigate } from "react-router";
 import { routes } from "../routes.ts";
@@ -7,19 +7,20 @@ import { FiPlus } from "react-icons/fi";
 import { open } from "@tauri-apps/plugin-dialog";
 
 import styles from "./fileSelectionView.module.scss";
+import { FileSummary } from "../components/fileSummary.tsx";
 
 
 export const FileSelectionView = () => {
   const isFetching = useRef(false);
   const navigate = useNavigate();
-  const [files, setFiles] = useState<string[]>([]);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
 
   useEffect(() => {
     if (isFetching.current) return;
 
     isFetching.current = true;
-    getFiles().then((files) => {
-      setFiles(files);
+    getAnalyses().then((files) => {
+      setAnalyses(files);
     });
   }, []);
 
@@ -33,7 +34,7 @@ export const FileSelectionView = () => {
 
     if (res === null) return;
 
-    navigate(routes.newFile, { state: { file: res } });
+    navigate(routes.newAnalysis, { state: { file: res } });
 
   };
 
@@ -43,10 +44,8 @@ export const FileSelectionView = () => {
         New analysis <FiPlus />
       </button>
       <div className={styles.files}>
-        {files.map((file) => (
-          <div key={file} className={styles.selectableFile}>
-            {file}
-          </div>
+        {analyses.map((a) => (
+          <FileSummary {...a} key={a.id} />
         ))}
       </div>
     </div>

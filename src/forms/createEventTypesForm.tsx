@@ -15,7 +15,7 @@ interface ICreateEventTypesFormProps {
   onEventsChange: (value: SetStateAction<IEventControl[]>) => void;
 }
 
-export const validateEvents = (events: IEventControl[]) => {
+export const validateEvents = (events: Omit<IEventControl, 'formKey'>[]) => {
   const trimmedNames = events.map((event) =>
     event.name.trim().trim().toLowerCase(),
   );

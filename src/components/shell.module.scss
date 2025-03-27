@@ -42,8 +42,16 @@
     aspect-ratio: 1;
     width: 2.15rem;
     height: auto;
-     font-size: var(--font-size-md);
+    font-size: var(--font-size-md);
     border-radius: var(--border-radius);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    text-decoration: none;
+    color: var(--color-white);
+
   }
 }
 

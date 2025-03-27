@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { open, OpenDialogOptions } from "@tauri-apps/plugin-dialog";
@@ -10,13 +10,19 @@ export const openSingleVideoOpts: OpenDialogOptions = {
   filters: [{ name: "Videos", extensions: ["mp4"] }],
 };
 
-const getFileNameFromPath = (path: string) => {
+export const getFileNameFromPath = (path: string) => {
   const parts = path.split("/");
   return parts[parts.length - 1];
 };
 
 export const useOpenFile = (initialPath?: string) => {
   const [filePath, setFilePath] = useState<string | undefined>(initialPath);
+
+  useEffect(() => {
+    if (!initialPath) return;
+
+    setFilePath(initialPath);
+  }, [initialPath]);
 
   const fileSrc = React.useMemo(() => {
     if (!filePath) {

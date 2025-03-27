@@ -10,7 +10,6 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useHandleAnalysisControls } from "../hooks/useHandleAnalysisControls.ts";
 
 import styles from "./analysisView.module.scss";
-import { open } from "@tauri-apps/plugin-dialog";
 
 export const AnalysisView = () => {
   let { id } = useParams();

@@ -35,7 +35,7 @@ export const getAnalyses = async () => {
   return unRustifyArray(await invoke("get_all_analyses")) as Analysis[];
 };
 
-type AddAnalysisParams = Omit<
+export type AddAnalysisParams = Omit<
   Analysis,
   "id" | "createdAt" | "updatedAt" | "lastOpenedAt"
 > & {

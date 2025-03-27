@@ -10,7 +10,8 @@
   gap: var(--spacing-md);
   padding: var(--spacing-sm);
   background-color: var(--color-primary);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-right: 2px solid var(--color-primary-border);
+  //box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   z-index: 1;
   height: 100vh;
   box-sizing: border-box;
@@ -34,16 +35,14 @@
     }
   }
 
-  .openButton {
-
-
+  .navButton {
     opacity: 1;
-
     background-color: var(--color-secondary);
     padding: var(--spacing-xs);
     aspect-ratio: 1;
-    width: 2rem;
+    width: 2.15rem;
     height: auto;
+     font-size: var(--font-size-md);
     border-radius: var(--border-radius);
   }
 }

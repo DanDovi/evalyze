@@ -4,16 +4,17 @@ import { Analysis, getAnalyses } from "../state/fileController";
 import { useNavigate } from "react-router";
 import { routes } from "../routes.ts";
 import { FiPlus } from "react-icons/fi";
-import { open } from "@tauri-apps/plugin-dialog";
+import { FileSummary } from "../components/fileSummary.tsx";
+import { openSingleVideoOpts, useOpenFile } from "../hooks/useOpenFile.ts";
 
 import styles from "./fileSelectionView.module.scss";
-import { FileSummary } from "../components/fileSummary.tsx";
-
 
 export const FileSelectionView = () => {
   const isFetching = useRef(false);
   const navigate = useNavigate();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
+
+  const { openFileDialog } = useOpenFile();
 
   useEffect(() => {
     if (isFetching.current) return;
@@ -25,17 +26,10 @@ export const FileSelectionView = () => {
   }, []);
 
   const onNewFile = async () => {
-    const res = await open({
-      multiple: false,
-      directory: false,
-      title: "Select file",
-      filters: [{ name: "Videos", extensions: ["mp4"] }],
-    });
-
+    const res = await openFileDialog(openSingleVideoOpts);
     if (res === null) return;
-
+    console.log(res);
     navigate(routes.newAnalysis, { state: { file: res } });
-
   };
 
   return (

@@ -1,0 +1,18 @@
+.videoContainer {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-md);
+
+  background-color: var(--color-bg-accent-light);
+
+  border-top: 2px solid var(--color-bg-accent);
+  border-bottom: 2px solid var(--color-bg-accent);
+
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+
+  .video {
+    width: 80%;
+    max-width: 800px;
+  }
+}
+

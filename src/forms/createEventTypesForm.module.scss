@@ -1,0 +1,21 @@
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+}
+
+.eventRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.deleteButton {
+  background-color: var(--color-negative);
+}
+
+.addEventButton {
+  background-color: var(--color-secondary);
+}

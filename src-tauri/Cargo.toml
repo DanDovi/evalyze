@@ -27,3 +27,5 @@ tauri-plugin-persisted-scope = "2"
 sqlx = { version = "0.8.3", features = ["runtime-tokio", "sqlite", "chrono"] }
 thiserror = "2.0.12"
 
+
+

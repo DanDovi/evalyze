@@ -1,30 +1,43 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import { FileSelectionView } from "./views/fileSelectionView.tsx";
 import { routes } from "./routes.ts";
 import { NewFileView } from "./views/newFileView.tsx";
 import App from "./App.tsx";
 import { AnalysisView } from "./views/analysisView.tsx";
+import ErrorBoundary from "./components/errorBoundary.tsx";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <App/>,
+    element: <App />,
     children: [
       {
         index: true,
-        element: <FileSelectionView />,
+        element: (
+          <ErrorBoundary>
+            <FileSelectionView />
+          </ErrorBoundary>
+        ),
       },
       {
         path: routes.newAnalysis,
-        element: <NewFileView />,
+        element: (
+          <ErrorBoundary>
+            <NewFileView />
+          </ErrorBoundary>
+        ),
       },
       {
         path: routes.analysis,
-        element: <AnalysisView />,
+        element: (
+          <ErrorBoundary>
+            <AnalysisView />
+          </ErrorBoundary>
+        ),
       },
       {
         path: "*",
-        element: <div>Not found</div>,
+        element: <Navigate to="/" />,
       },
     ],
   },

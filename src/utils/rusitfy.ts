@@ -1,6 +1,13 @@
 import { snakeCase, camelCase } from "change-case";
 
-const transformArray = <T,>(arr: T[], transformFn: (key: string) => string): unknown[] => {
+const transformArray = <T>(
+  arr: T,
+  transformFn: (key: string) => string,
+): unknown[] => {
+  if (!Array.isArray(arr)) {
+    throw new Error("Invalid array");
+  }
+
   return arr.map((item) => {
     if (item && typeof item === "object" && !Array.isArray(item)) {
       return transformObject(item, transformFn);
@@ -11,7 +18,10 @@ const transformArray = <T,>(arr: T[], transformFn: (key: string) => string): unk
   });
 };
 
-const transformObject = (obj: Record<string, any>, transformFn: (key: string) => string) => {
+const transformObject = (
+  obj: Record<string, any>,
+  transformFn: (key: string) => string,
+) => {
   const newObj: Record<string, any> = {};
   for (const key in obj) {
     let val = obj[key];
@@ -26,7 +36,11 @@ const transformObject = (obj: Record<string, any>, transformFn: (key: string) =>
   return newObj;
 };
 
-export const rustifyArray = <T,>(arr: T[]): unknown[] => transformArray(arr, snakeCase);
-export const rustifyObject = (obj: Record<string, any>) => transformObject(obj, snakeCase);
-export const unRustifyArray = <T,>(arr: T[]): unknown[] => transformArray(arr, camelCase);
-export const unRustifyObject = (obj: Record<string, any>) => transformObject(obj, camelCase);
+export const rustifyArray = <T>(arr: T[]): unknown[] =>
+  transformArray(arr, snakeCase);
+export const rustifyObject = (obj: Record<string, any>) =>
+  transformObject(obj, snakeCase);
+export const unRustifyArray = <T>(arr: T): unknown[] =>
+  transformArray(arr, camelCase);
+export const unRustifyObject = (obj: Record<string, any>) =>
+  transformObject(obj, camelCase);

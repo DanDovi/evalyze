@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 
 import styles from "./errorBoundary.module.scss";
+import { Link } from "react-router";
 
 interface Props {
   children: ReactNode;
@@ -30,9 +31,13 @@ class ErrorBoundary extends Component<Props, State> {
         <div className={styles.errorDisplay}>
           <div className={styles.errorContainer}>
             <h1>Something went wrong.</h1>
-            <button onClick={() => window.location.reload()}>
+            <Link
+              to="/"
+              className={styles.returnHome}
+              onClick={() => this.setState({ hasError: false })}
+            >
               Return Home
-            </button>
+            </Link>
           </div>
         </div>
       );

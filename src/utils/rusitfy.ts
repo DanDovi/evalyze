@@ -31,7 +31,6 @@ const transformObject = (
     let val = obj[key];
 
     if (isRecord(val)) {
-      newObj[key] = transformArray(val, transformFn);
       val = transformObject(val, transformFn);
     } else if (Array.isArray(val)) {
       val = transformArray(val, transformFn);

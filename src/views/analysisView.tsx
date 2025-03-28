@@ -8,23 +8,34 @@ import { formatDate } from "../utils/dates.ts";
 import { useParams } from "react-router";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useHandleAnalysisControls } from "../hooks/useHandleAnalysisControls.ts";
+import { useAsyncError } from "../hooks/useAsyncError.ts";
 
 import styles from "./analysisView.module.scss";
+import { EventTimeline } from "../components/eventTimeline.tsx";
 
 export const AnalysisView = () => {
   const { id } = useParams();
+  const { throwError } = useAsyncError();
 
   const [analysis, setAnalysis] = useState<AnalysisWithEventTypes | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    getAnalysisById(parseInt(id, 10)).then(setAnalysis);
-  }, [id]);
+    getAnalysisById(parseInt(id, 10))
+      .then(setAnalysis)
+      .catch((e) => {
+        throwError(e);
+      });
+  }, [id, throwError]);
 
-  const { capturedEvents, videoRef, currentRangeEventDurations } =
-    useHandleAnalysisControls({
-      events: analysis?.eventTypes ?? [],
-    });
+  const {
+    capturedEvents,
+    setVideoRef,
+    currentRangeEventDurations,
+    currentPlaybackTime,
+  } = useHandleAnalysisControls({
+    events: analysis?.eventTypes ?? [],
+  });
 
   if (!analysis) return <div>Loading...</div>;
 
@@ -37,7 +48,7 @@ export const AnalysisView = () => {
       </div>
       <div className={styles.videoContainer}>
         <video
-          ref={videoRef}
+          ref={setVideoRef}
           className={styles.video}
           src={convertFileSrc(analysis.analysisData.path)}
           disablePictureInPicture
@@ -45,7 +56,12 @@ export const AnalysisView = () => {
           controls
         />
       </div>
-
+      <EventTimeline
+        eventTypes={analysis.eventTypes}
+        events={capturedEvents}
+        videoDuration={analysis.analysisData.duration}
+        currentTime={currentPlaybackTime}
+      />
       <h2>Event Types</h2>
       <table>
         <thead>

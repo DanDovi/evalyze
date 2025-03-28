@@ -64,14 +64,15 @@ const insertRangeEventInOrder = (
     return events;
   }
 
-  const existingEventsOfSameType = events.filter(
-    (e) => e.eventTypeId !== newEvent.eventTypeId,
-  );
+  const inProgressEvent = events.findIndex((e) => {
+    const isSameEventType = e.eventTypeId === newEvent.eventTypeId;
 
-  const inProgressEvent = existingEventsOfSameType.findIndex((e) => {
+    if (!isSameEventType) return false;
+
     const isOpenEvent =
       e.startTimestamp < newEvent.startTimestamp &&
       e.endTimestamp === undefined;
+
     const containsEvent =
       e.endTimestamp &&
       e.startTimestamp < newEvent.startTimestamp &&
@@ -83,7 +84,10 @@ const insertRangeEventInOrder = (
   if (inProgressEvent >= 0) {
     const array = [...events];
 
-    array[inProgressEvent].endTimestamp = newEvent.startTimestamp;
+    array[inProgressEvent] = {
+      ...array[inProgressEvent],
+      endTimestamp: newEvent.startTimestamp,
+    };
     return array;
   }
 
@@ -95,7 +99,6 @@ const insertEventInOrder = (
   newEvent: AnalysisEventSummary,
 ) => {
   if (newEvent.category === "range") {
-    // TODO: Implement this function
     return insertRangeEventInOrder(events, newEvent);
   } else {
     return insertSingleEventInOrder(events, newEvent);
@@ -108,7 +111,55 @@ export const useHandleAnalysisControls = ({
   const [capturedEvents, setCapturedEvents] = useState<
     Array<AnalysisEventSummary>
   >([]);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const onVideoStart = useCallback(() => {
+    if (videoRef.current) {
+      setCurrentPlaybackTime(videoRef.current.currentTime);
+      intervalRef.current = setInterval(() => {
+        if (videoRef.current) {
+          console.log("updating current time");
+          setCurrentPlaybackTime(videoRef.current.currentTime);
+        }
+      }, 50);
+    }
+  }, []);
+
+  const onVideoStop = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const onScrubVideo = useCallback(() => {
+    if (videoRef.current) {
+      console.log("scrubbing video");
+      setCurrentPlaybackTime(videoRef.current.currentTime);
+    }
+  }, []);
+
+  const setVideoRef = useCallback(
+    (node: HTMLVideoElement) => {
+      if (videoRef.current) {
+        videoRef.current.removeEventListener("play", onVideoStart);
+        videoRef.current.removeEventListener("pause", onVideoStop);
+        videoRef.current.removeEventListener("ended", onVideoStop);
+        videoRef.current.removeEventListener("seeked", onScrubVideo);
+      }
+      if (node) {
+        console.log("setting video ref");
+        node.addEventListener("play", onVideoStart);
+        node.addEventListener("pause", onVideoStop);
+        node.addEventListener("ended", onVideoStop);
+        node.addEventListener("seeked", onScrubVideo);
+      }
+      videoRef.current = node;
+    },
+    [onVideoStart, onVideoStop, onScrubVideo],
+  );
 
   const onAddEvent = useCallback((eventType: AnalysisEventType) => {
     if (!videoRef.current || videoRef.current.paused) {
@@ -150,8 +201,13 @@ export const useHandleAnalysisControls = ({
 
   const currentRangeEventDurations = currentRangeEvents.map((e) => ({
     eventTypeId: e.eventTypeId,
-    timeSinceStart: videoRef.current!.currentTime - e.startTimestamp,
+    timeSinceStart: currentPlaybackTime - e.startTimestamp,
   }));
 
-  return { videoRef, capturedEvents, currentRangeEventDurations };
+  return {
+    setVideoRef,
+    capturedEvents,
+    currentRangeEventDurations,
+    currentPlaybackTime,
+  };
 };

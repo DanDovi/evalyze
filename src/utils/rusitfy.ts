@@ -18,15 +18,20 @@ const transformArray = <T>(
   });
 };
 
+const isRecord = (val: unknown): val is Record<string, unknown> => {
+  return val !== null && typeof val === "object" && !Array.isArray(val);
+};
+
 const transformObject = (
-  obj: Record<string, any>,
+  obj: Record<string, unknown>,
   transformFn: (key: string) => string,
 ) => {
-  const newObj: Record<string, any> = {};
+  const newObj: Record<string, unknown> = {};
   for (const key in obj) {
     let val = obj[key];
 
-    if (typeof val === "object" && !Array.isArray(val)) {
+    if (isRecord(val)) {
+      newObj[key] = transformArray(val, transformFn);
       val = transformObject(val, transformFn);
     } else if (Array.isArray(val)) {
       val = transformArray(val, transformFn);
@@ -38,9 +43,9 @@ const transformObject = (
 
 export const rustifyArray = <T>(arr: T[]): unknown[] =>
   transformArray(arr, snakeCase);
-export const rustifyObject = (obj: Record<string, any>) =>
+export const rustifyObject = (obj: Record<string, unknown>) =>
   transformObject(obj, snakeCase);
 export const unRustifyArray = <T>(arr: T): unknown[] =>
   transformArray(arr, camelCase);
-export const unRustifyObject = (obj: Record<string, any>) =>
+export const unRustifyObject = (obj: Record<string, unknown>) =>
   transformObject(obj, camelCase);

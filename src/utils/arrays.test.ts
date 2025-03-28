@@ -29,4 +29,4 @@ describe("sortInserts", () => {
     const result = sortedInsert(array, value, "id");
     expect(result).toEqual([{ id: 1 }]);
   });
-})
+});

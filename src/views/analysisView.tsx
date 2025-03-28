@@ -12,7 +12,7 @@ import { useHandleAnalysisControls } from "../hooks/useHandleAnalysisControls.ts
 import styles from "./analysisView.module.scss";
 
 export const AnalysisView = () => {
-  let { id } = useParams();
+  const { id } = useParams();
 
   const [analysis, setAnalysis] = useState<AnalysisWithEventTypes | null>(null);
 
@@ -21,9 +21,10 @@ export const AnalysisView = () => {
     getAnalysisById(parseInt(id, 10)).then(setAnalysis);
   }, [id]);
 
-  const { capturedEvents, videoRef, currentRangeEventDurations } = useHandleAnalysisControls({
-    events: analysis?.eventTypes ?? [],
-  });
+  const { capturedEvents, videoRef, currentRangeEventDurations } =
+    useHandleAnalysisControls({
+      events: analysis?.eventTypes ?? [],
+    });
 
   if (!analysis) return <div>Loading...</div>;
 

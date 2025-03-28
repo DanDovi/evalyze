@@ -4,7 +4,11 @@ import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { addAnalysis, AddAnalysisParams } from "../state/fileController.ts";
 import { routes } from "../routes.ts";
-import { getFileNameFromPath, openSingleVideoOpts, useOpenFile } from "../hooks/useOpenFile.ts";
+import {
+  getFileNameFromPath,
+  openSingleVideoOpts,
+  useOpenFile,
+} from "../hooks/useOpenFile.ts";
 
 import {
   CreateEventTypesForm,
@@ -48,17 +52,16 @@ export const NewFileView = () => {
   const { state } = useLocation() as { state: INavigationState | null };
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { fileSrc, filePath, openFileDialog } = useOpenFile(
-    state?.file,
+  const { fileSrc, filePath, openFileDialog } = useOpenFile(state?.file);
+  const [analysisName, setAnalysisName] = useState(
+    state?.file ? getFileNameFromPath(state.file) : "",
   );
-  const [analysisName, setAnalysisName] = useState(state?.file ? getFileNameFromPath(state.file) : "");
 
   const [events, setEvents] = useState<IEventControl[]>([]);
 
   // If state changes we want to reset the form
   useEffect(() => {
-
-    if(!state?.file) return;
+    if (!state?.file) return;
 
     setAnalysisName(state?.file ? getFileNameFromPath(state.file) : "");
     setEvents([]);
@@ -84,7 +87,7 @@ export const NewFileView = () => {
 
     toast.success("Analysis created");
     navigate(routes.analysis.replace(":id", id.toString(10)));
-  }, [analysisName, filePath, events]);
+  }, [analysisName, filePath, events, navigate]);
 
   return (
     <div className={styles.newFileView}>

@@ -110,40 +110,33 @@ export const useHandleAnalysisControls = ({
   >([]);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const onAddEvent = useCallback(
-    (eventType: AnalysisEventType) => {
-      if (!videoRef.current || videoRef.current.paused) {
-        return;
-      }
+  const onAddEvent = useCallback((eventType: AnalysisEventType) => {
+    if (!videoRef.current || videoRef.current.paused) {
+      return;
+    }
 
-      const currentTime = videoRef.current.currentTime;
+    const currentTime = videoRef.current.currentTime;
 
-      const { id, category } = eventType;
-      const newEvent: AnalysisEventSummary = {
-        eventTypeId: id,
-        category,
-        startTimestamp: currentTime,
-      };
+    const { id, category } = eventType;
+    const newEvent: AnalysisEventSummary = {
+      eventTypeId: id,
+      category,
+      startTimestamp: currentTime,
+    };
 
-      setCapturedEvents((prev) => {
-        return insertEventInOrder(prev, newEvent);
-      });
-    },
-    [capturedEvents],
-  );
-
-  const onKeyDown = useCallback(
-    getKeydownHandler(videoRef, events, onAddEvent),
-    [events],
-  );
+    setCapturedEvents((prev) => {
+      return insertEventInOrder(prev, newEvent);
+    });
+  }, []);
 
   useEffect(() => {
-    window.addEventListener("keydown", onKeyDown);
+    const keyHandler = getKeydownHandler(videoRef, events, onAddEvent);
+    window.addEventListener("keydown", keyHandler);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keydown", keyHandler);
     };
-  }, [events]);
+  }, [events, onAddEvent]);
 
   const currentRangeEvents = capturedEvents.filter((e) => {
     if (e.category === "single" || !videoRef.current) return false;

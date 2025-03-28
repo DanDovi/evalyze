@@ -15,7 +15,7 @@ interface ICreateEventTypesFormProps {
   onEventsChange: (value: SetStateAction<IEventControl[]>) => void;
 }
 
-export const validateEvents = (events: Omit<IEventControl, 'formKey'>[]) => {
+export const validateEvents = (events: Omit<IEventControl, "formKey">[]) => {
   const trimmedNames = events.map((event) =>
     event.name.trim().trim().toLowerCase(),
   );
@@ -63,15 +63,18 @@ export const CreateEventTypesForm = ({
         formKey: maxFormKey + 1,
       },
     ]);
-  }, [events]);
+  }, [events, onEventsChange]);
 
-  const onDeleteEvent = useCallback((index: number) => {
-    onEventsChange((prev) => {
-      const newEvents = [...prev];
-      newEvents.splice(index, 1);
-      return newEvents;
-    });
-  }, []);
+  const onDeleteEvent = useCallback(
+    (index: number) => {
+      onEventsChange((prev) => {
+        const newEvents = [...prev];
+        newEvents.splice(index, 1);
+        return newEvents;
+      });
+    },
+    [onEventsChange],
+  );
 
   return (
     <div className={styles.events}>

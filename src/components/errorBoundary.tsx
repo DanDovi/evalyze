@@ -30,7 +30,9 @@ class ErrorBoundary extends Component<Props, State> {
         <div className={styles.errorDisplay}>
           <div className={styles.errorContainer}>
             <h1>Something went wrong.</h1>
-            <button onClick={() => window.location.reload()}>Return Home</button>
+            <button onClick={() => window.location.reload()}>
+              Return Home
+            </button>
           </div>
         </div>
       );

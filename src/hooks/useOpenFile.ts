@@ -38,19 +38,16 @@ export const useOpenFile = (initialPath?: string) => {
     return getFileNameFromPath(filePath);
   }, [filePath]);
 
-  const openFileDialog = React.useCallback(
-    async (opts: OpenDialogOptions) => {
-      const res = await open(opts);
-      if (!res) {
-        return;
-      }
+  const openFileDialog = React.useCallback(async (opts: OpenDialogOptions) => {
+    const res = await open(opts);
+    if (!res) {
+      return;
+    }
 
-      setFilePath(res);
+    setFilePath(res);
 
-      return res;
-    },
-    [filePath],
-  );
+    return res;
+  }, []);
   return {
     fileName,
     filePath,

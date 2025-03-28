@@ -16,7 +16,7 @@ export const FileSummary = ({
   return (
     <Link to={`/analysis/${id}`} className={styles.fileSummary} title={name}>
       <div>
-        <span className={styles.name} >{name}</span>
+        <span className={styles.name}>{name}</span>
         <div className={styles.details}>
           <div>{`Duration: ${formatSeconds(duration)}`}</div>
           <div>{`Last opened: ${formatDate(lastOpenedAt)}`}</div>

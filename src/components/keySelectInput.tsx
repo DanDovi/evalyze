@@ -10,8 +10,12 @@ export const KeySelectInput = forwardRef<
   return (
     <SelectInput ref={ref} {...props}>
       {keys.map((key) => (
-        <option key={key} value={key}>{key}</option>
+        <option key={key} value={key}>
+          {key}
+        </option>
       ))}
     </SelectInput>
   );
 });
+
+KeySelectInput.displayName = "KeySelectInput";

@@ -12,3 +12,5 @@ export const SelectInput = forwardRef<
     </div>
   );
 });
+
+SelectInput.displayName = "SelectInput";

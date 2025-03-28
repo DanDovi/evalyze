@@ -1,5 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
-import { rustifyObject, unRustifyArray, unRustifyObject } from "../utils/rusitfy.ts";
+import {
+  rustifyObject,
+  unRustifyArray,
+  unRustifyObject,
+} from "../utils/rusitfy.ts";
 
 export type Analysis = {
   id: number;

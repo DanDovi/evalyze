@@ -36,6 +36,7 @@ const getKeydownHandler = (
     if (!videoRef.current || !validKeys[e.key]) return;
 
     if (e.key === " ") {
+      e.preventDefault();
       toggleVideoPlay(videoRef);
     }
     const event = events.find((event) => event.keyboardKey === e.key);
@@ -206,6 +207,7 @@ export const useHandleAnalysisControls = ({
 
   return {
     setVideoRef,
+    videoRef,
     capturedEvents,
     currentRangeEventDurations,
     currentPlaybackTime,

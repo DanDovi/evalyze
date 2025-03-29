@@ -1,0 +1,55 @@
+.rawEventPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+
+  background-color: var(--color-bg-accent-light);
+
+  height: 80vh;
+
+  position: absolute;
+  top: 50vh;
+  right: 0;
+  transform: translateY(-50%) translateX(100%);
+  z-index: 2;
+
+  transition: transform 0.3s ease-in-out;
+
+  border-radius: var(--border-radius);
+
+
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+  }
+
+  th, td {
+    padding: var(--spacing-xs);
+    text-align: left;
+    border-bottom: 1px solid var(--color-gray-300);
+  }
+
+  th {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+  }
+}
+
+.rawEventPanel[data-open="true"] {
+  transform: translateY(-50%) translateX(0);
+}
+
+.openButton {
+
+  position: absolute;
+  top: 50%;
+  left: 0;
+  padding: var(--spacing-xs);
+  transform: translateX(-100%) rotate(180deg);
+  writing-mode: vertical-rl;
+}

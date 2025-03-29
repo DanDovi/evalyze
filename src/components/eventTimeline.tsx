@@ -2,17 +2,31 @@ import {
   AnalysisEventSummary,
   AnalysisEventType,
 } from "../state/fileController.ts";
-import React, { Fragment } from "react";
+import React from "react";
+
+import styles from "./eventTimeline.module.scss";
 
 interface IEventTimelineProps {
   eventTypes: AnalysisEventType[];
   events: AnalysisEventSummary[];
   videoDuration: number;
   currentTime: number;
+  videoRef?: React.RefObject<HTMLVideoElement>;
 }
 
 type GroupedEvents = {
   [key: string]: AnalysisEventSummary[];
+};
+
+const getEventWidth = (
+  event: AnalysisEventSummary,
+  currentTime: number,
+  videoDuration: number,
+) => {
+  if (event.category === "single") {
+    return "2px";
+  }
+  return `${(((event.endTimestamp || currentTime) - event.startTimestamp) / videoDuration) * 100}%`;
 };
 
 export const EventTimeline = ({
@@ -20,6 +34,7 @@ export const EventTimeline = ({
   events,
   videoDuration,
   currentTime,
+  videoRef,
 }: IEventTimelineProps) => {
   const reducedEvents = React.useMemo(
     () =>
@@ -39,76 +54,87 @@ export const EventTimeline = ({
     [events, eventTypes],
   );
 
+  // TODO: Make this work better for longer and shorter videos
   const timeTicks = React.useMemo(() => {
-    const ticks = [];
-    for (let i = 0; i <= videoDuration; i += 1) {
-      ticks.push(i);
-    }
-    return ticks;
+    return Array.from({ length: Math.floor(videoDuration) }, (_, i) => i);
   }, [videoDuration]);
 
-  return (
-    <div style={{ width: "100%", position: "relative" }}>
-      {eventTypes.map((eventType, index) => {
-        return (
-          <div
-            key={index}
-            style={{
-              width: `100%`,
-              height: "20px",
-              margin: "2px 0",
-            }}
-          >
-            {reducedEvents[eventType.name]?.map((event) => {
-              return (
-                <div
-                  key={event.startTimestamp}
-                  style={{
-                    position: "absolute",
-                    left: `${(event.startTimestamp / videoDuration) * 100}%`,
-                    width:
-                      event.category === "single"
-                        ? "2px"
-                        : `${(((event.endTimestamp || currentTime) - event.startTimestamp) / videoDuration) * 100}%`,
-                    height: "20px",
-                    backgroundColor:
-                      eventType?.category === "single" ? "blue" : "green",
-                  }}
-                ></div>
-              );
-            })}
-          </div>
-        );
-      })}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: `${(currentTime / videoDuration) * 100}%`,
-          width: "2px",
-          height: "100%",
-          backgroundColor: "red",
-        }}
-      ></div>
+  const onRulerClick = React.useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!videoRef?.current) return;
 
-      <Fragment>
+      const ruler = e.currentTarget;
+      const clickX = e.clientX - ruler.getBoundingClientRect().left;
+
+      videoRef.current.currentTime =
+        (clickX / ruler.clientWidth) * videoDuration;
+    },
+    [videoRef, videoDuration],
+  );
+
+  const onRulerDrag = React.useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const mouseIsDown = e.buttons === 1;
+      const ruler = e.currentTarget;
+      if (mouseIsDown && videoRef?.current && ruler) {
+        const ruler = e.currentTarget;
+        const clickX = e.clientX - ruler.getBoundingClientRect().left;
+        videoRef.current.currentTime =
+          (clickX / ruler.clientWidth) * videoDuration;
+      }
+    },
+    [videoDuration, videoRef],
+  );
+
+  return (
+    <div className={styles.eventTimeline}>
+      <div
+        className={styles.ruler}
+        onClick={onRulerClick}
+        onMouseMove={(e) => onRulerDrag(e)}
+      >
         {/* Add time markers - every 5 seconds */}
         {timeTicks.map((i) => {
           return (
             <div
               key={i}
+              data-large={i % 5 === 0}
+              className={styles.tickMarker}
               style={{
-                position: "absolute",
-                top: "0",
                 left: `${(i / videoDuration) * 100}%`,
-                width: "1px",
-                height: i % 5 === 0 ? "20px" : "10px",
-                backgroundColor: "gray",
               }}
-            ></div>
+            />
           );
         })}
-      </Fragment>
+      </div>
+
+      <div>
+        {eventTypes.map((eventType) => {
+          return (
+            <div key={eventType.name} className={styles.eventTimelineRow}>
+              {reducedEvents[eventType.name]?.map((event) => {
+                return (
+                  <div
+                    key={event.startTimestamp}
+                    className={styles.eventMarker}
+                    style={{
+                      left: `${(event.startTimestamp / videoDuration) * 100}%`,
+                      width: getEventWidth(event, currentTime, videoDuration),
+                    }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+
+      <div
+        className={styles.currentTimeMarker}
+        style={{
+          left: `${(currentTime / videoDuration) * 100}%`,
+        }}
+      />
     </div>
   );
 };

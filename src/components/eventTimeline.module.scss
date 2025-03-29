@@ -1,0 +1,87 @@
+.eventTimeline {
+  width: 100%;
+  position: relative;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  overflow: hidden;
+
+  border: 1px solid var(--color-gray-200);
+}
+
+.ruler {
+  position: relative;
+  width: 100%;
+  height: 1rem;
+
+  background-color: var(--color-gray-300);
+
+  user-select: none;
+}
+
+.tickMarker {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background-color: var(--color-gray-500);
+
+  height: 50%;
+  user-select: none;
+
+
+  &[data-large='true'] {
+    height: 100%;
+  }
+}
+
+.eventTimelineRow {
+  width: 100%;
+  height: 2.5rem;
+  position: relative;
+
+  --event-opacity: 0.9;
+  background-color: var(--color-gray-200);
+
+}
+
+.eventTimelineRow:not(:last-of-type) {
+  border-bottom: 1px solid var(--color-gray-400);
+}
+
+.eventTimelineRow:nth-child(n) {
+  .eventMarker {
+    background-color: rgb(from var(--color-primary) r g b / var(--event-opacity));
+    //border-color: var(--color-primary);
+  }
+}
+
+.eventTimelineRow:nth-child(2n) {
+  .eventMarker {
+    background-color: rgb(from var(--color-secondary) r g b / var(--event-opacity));
+    //border-color: var(--color-secondary);
+  }
+}
+
+.eventTimelineRow:nth-child(3n) {
+  .eventMarker {
+    background-color: rgb(from var(--color-tertiary) r g b / var(--event-opacity));
+    //border-color: var(--color-tertiary);
+
+  }
+}
+
+.eventMarker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: calc(var(--border-radius) / 2);
+}
+
+.currentTimeMarker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: var(--color-negative);
+}
+

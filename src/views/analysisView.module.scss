@@ -1,3 +1,14 @@
+.analysisView {
+  position: relative;
+  h1, h2 {
+    margin: 0;
+  }
+}
+
+.section {
+  padding: var(--spacing-sm);
+}
+
 .videoContainer {
   display: flex;
   justify-content: center;

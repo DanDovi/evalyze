@@ -35,7 +35,8 @@ pub fn run() {
         greet,
         commands::analysis::add_analysis,
         commands::analysis::get_all_analyses,
-        commands::analysis::get_analysis_by_id
+        commands::analysis::get_analysis_by_id,
+        commands::analysis::save_events_to_csv,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

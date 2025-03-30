@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import {
+  rustifyArray,
   rustifyObject,
   unRustifyArray,
   unRustifyObject,
@@ -60,4 +61,20 @@ export const getAnalysisById = async (
   return unRustifyObject(
     await invoke("get_analysis_by_id", { id }),
   ) as AnalysisWithEventTypes;
+};
+
+export const saveEventsToCsv = async (
+  analysisId: number,
+  events: AnalysisEventSummary[],
+) => {
+  const rustifiedEvents = rustifyArray(
+    events.map(({ category, ...event }) => ({
+      ...event,
+    })),
+  );
+
+  return await invoke("save_events_to_csv", {
+    analysisId,
+    events: rustifiedEvents,
+  });
 };

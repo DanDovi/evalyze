@@ -1,25 +1,36 @@
 .rawEventPanel {
   display: flex;
   flex-direction: column;
+
+  box-sizing: border-box;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md);
+  padding: var(--spacing-md) 0;
 
-  background-color: var(--color-bg-accent-light);
 
-  height: 80vh;
-
-  position: absolute;
-  top: 50vh;
-  right: 0;
-  transform: translateY(-50%) translateX(100%);
-  z-index: 2;
-
-  transition: transform 0.3s ease-in-out;
+  height: 100vh;
+  overflow: hidden;
+  width: 0;
 
   border-radius: var(--border-radius);
 
+  transition: width 0.3s, padding 0.3s;
 
-  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+  &[data-open="true"] {
+    width: 30rem;
+    min-width: min-content;
+
+    padding: var(--spacing-md);
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    button {
+      background-color: var(--color-secondary);
+    }
+  }
 
   table {
     width: 100%;
@@ -32,6 +43,9 @@
     padding: var(--spacing-xs);
     text-align: left;
     border-bottom: 1px solid var(--color-gray-300);
+
+
+    white-space: nowrap;
   }
 
   th {
@@ -40,16 +54,69 @@
   }
 }
 
-.rawEventPanel[data-open="true"] {
-  transform: translateY(-50%) translateX(0);
+.tableContainer {
+  overflow-y: scroll;
+  max-height: 100%;
+  min-width: min-content;
+  width: 100%;
+
+  --scrollbar-width: 5px;
+  scrollbar-width: var(--scrollbar-width);
+
+  &::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-gray-300);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-button {
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-track-piece {
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-thumb:vertical {
+    background-color: var(--color-gray-300);
+  }
+
+  &::-webkit-scrollbar-thumb:horizontal {
+    background-color: var(--color-gray-300);
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-button {
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-track-piece {
+    background-color: var(--color-gray-100);
+  }
+
+  &::-webkit-scrollbar-thumb:vertical {
+    background-color: var(--color-gray-300);
+  }
+
+  &::-webkit-scrollbar-thumb:horizontal {
+    background-color: var(--color-gray-300);
+  }
+
+
 }
 
-.openButton {
-
-  position: absolute;
-  top: 50%;
-  left: 0;
-  padding: var(--spacing-xs);
-  transform: translateX(-100%) rotate(180deg);
-  writing-mode: vertical-rl;
-}

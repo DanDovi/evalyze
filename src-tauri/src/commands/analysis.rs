@@ -1,6 +1,9 @@
 use crate::db::DatabaseState;
 use serde::{Deserialize, Serialize};
 use sqlx::{Error as SqlxError, QueryBuilder, Sqlite};
+use std::fs;
+use tauri::AppHandle;
+use tauri_plugin_dialog::DialogExt;
 use thiserror::Error;
 
 #[tauri::command]
@@ -57,6 +60,12 @@ pub struct AnalysisWithEvents {
     event_types: Vec<AnalysisEventType>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AnalysisEventSummary {
+    event_type_id: i64,
+    start_timestamp: f64,
+    end_timestamp: Option<f64>,
+}
 
 // Use thiserror::Error to implement serializable errors
 // that are returned by commands
@@ -113,7 +122,7 @@ pub async fn add_analysis(
             return Err(Error::Database(e));
         }
     };
-    
+
     if res.rows_affected() != 1 {
         return Err(Error::StringError("Failed to insert analysis".to_string()));
     }
@@ -124,7 +133,6 @@ pub async fn add_analysis(
         tx.commit().await.expect("Failed to commit transaction");
         return Ok(analysis_id);
     }
-
 
     let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
         "INSERT INTO analysis_event_types (analysis_id, name, keyboard_key, category) ",
@@ -142,9 +150,7 @@ pub async fn add_analysis(
             tx.commit().await.expect("Failed to commit transaction");
             Ok(analysis_id)
         }
-        Err(e) => {
-            Err(Error::Database(e))
-        }
+        Err(e) => Err(Error::Database(e)),
     }
 }
 
@@ -211,4 +217,80 @@ pub async fn get_analysis_by_id(
         analysis_data: analysis,
         event_types,
     })
+}
+
+#[tauri::command]
+pub async fn save_events_to_csv(
+    app_handle: AppHandle,
+    state: tauri::State<'_, DatabaseState>,
+    analysis_id: i64,
+    events: Vec<AnalysisEventSummary>,
+) -> Result<(), Error> {
+    let pool = &state.0;
+
+    let stmt = r#"
+        SELECT id, analysis_id, name, keyboard_key, category
+        FROM analysis_event_types
+        WHERE analysis_id = ?
+    "#;
+
+    let query_result = sqlx::query_as::<_, AnalysisEventType>(stmt).bind(analysis_id);
+    let event_types = query_result.fetch_all(pool).await?;
+
+    if event_types.is_empty() {
+        return Err(Error::StringError(
+            "No event types found for the given analysis ID".to_string(),
+        ));
+    }
+
+    // Select where to save the file
+    let file_path = app_handle
+        .dialog()
+        .file()
+        .add_filter("CSV", &["csv"])
+        .blocking_save_file();
+
+    if file_path.is_none() {
+        return Err(Error::StringError("File path not selected".to_string()));
+    }
+
+    let file_path = file_path.expect("File path not selected");
+
+    let name_map: std::collections::HashMap<i64, String> = event_types
+        .iter()
+        .map(|event_type| (event_type.id, event_type.name.clone()))
+        .collect();
+
+    let mut wtr = csv::Writer::from_writer(vec![]);
+    wtr.write_record(&["Event Type", "Start Time", "End Time"])
+        .or_else(|_| Err(Error::StringError("Failed to write header".to_string())))?;
+
+    // Write the records
+    for event in events {
+        let event_type_name = name_map.get(&event.event_type_id).ok_or(Error::StringError("Event type not found".to_string()))?;
+
+        wtr.serialize((
+            event_type_name,
+            event.start_timestamp,
+            match event.end_timestamp {
+                Some(end_time) => end_time.to_string(),
+                None => "".to_string(),
+            }
+        ))
+        .or_else(|_| Err(Error::StringError("Failed to serialize event".to_string())))?;
+    }
+
+    // Flush the writer
+    wtr.flush()?;
+
+    let csv_data = wtr
+        .into_inner()
+        .or_else(|_| Err(Error::StringError("Failed to get CSV data".to_string())))?;
+
+    // Get the CSV data as a string
+    let csv_data = String::from_utf8(csv_data).expect("Failed to convert CSV data to string");
+
+    fs::write(file_path.to_string(), csv_data)?;
+
+    Ok(())
 }

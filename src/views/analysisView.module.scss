@@ -1,8 +1,19 @@
 .analysisView {
   position: relative;
+
   h1, h2 {
     margin: 0;
   }
+
+  height: 100vh;
+
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+
+.analysisSection {
+  border-right: 2px solid var(--color-bg-accent);
 }
 
 .section {
@@ -10,6 +21,7 @@
 }
 
 .videoContainer {
+  position: relative;
   display: flex;
   justify-content: center;
   padding: var(--spacing-md);
@@ -27,3 +39,22 @@
   }
 }
 
+.rawEventsButton {
+  position: absolute;
+  top: 50%;
+  right: -2px;
+  padding: var(--spacing-xs);
+  transform: translateY(-50%) rotate(180deg);
+  writing-mode: vertical-rl;
+
+  --bd: 2px solid red;
+
+  border-width: 2px 2px 2px 0;
+  border-style: solid;
+  border-color: var(--color-bg-accent) var(--color-bg-accent) var(--color-bg-accent) transparent;
+  border-radius: 0;
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+
+  white-space: nowrap;
+}

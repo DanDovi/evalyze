@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AnalysisWithEventTypes,
   getAnalysisById,
@@ -13,6 +13,7 @@ import { EventTimeline } from "../components/eventTimeline.tsx";
 
 import styles from "./analysisView.module.scss";
 import { RawEventPanel } from "../components/rawEventPanel.tsx";
+import { RadioGroupButtons } from "../components/radioGroupButtons.tsx";
 
 export const AnalysisView = () => {
   const { id } = useParams();
@@ -20,6 +21,7 @@ export const AnalysisView = () => {
 
   const [rawEventsOpen, setRawEventsOpen] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisWithEventTypes | null>(null);
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   useEffect(() => {
     if (!id) return;
@@ -39,6 +41,39 @@ export const AnalysisView = () => {
   } = useHandleAnalysisControls({
     events: analysis?.eventTypes ?? [],
   });
+
+  const setPlaybackRateCallback = useCallback(
+    (rate: number) => {
+      if (!videoRef.current) return;
+      videoRef.current.playbackRate = rate;
+      setPlaybackRate(rate);
+    },
+    [videoRef],
+  );
+
+  // Handle playback rate changes from the video element
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    const onPlaybackRateChange = (rate: number) => {
+      const rates = [1, 2, 4];
+      if (!rates.includes(rate)) {
+        setPlaybackRateCallback(1);
+      }
+    };
+
+    const currentVideoRef = videoRef.current;
+
+    currentVideoRef.addEventListener("ratechange", () =>
+      onPlaybackRateChange(currentVideoRef.playbackRate),
+    );
+
+    return () => {
+      currentVideoRef.removeEventListener("ratechange", () =>
+        onPlaybackRateChange(currentVideoRef.playbackRate),
+      );
+    };
+  }, [playbackRate, setPlaybackRateCallback, videoRef]);
 
   if (!analysis) return <div>Loading...</div>;
 
@@ -63,10 +98,17 @@ export const AnalysisView = () => {
             ref={setVideoRef}
             className={styles.video}
             src={convertFileSrc(analysis.analysisData.path)}
-            disablePictureInPicture
             playsInline
             controls
+            controlsList={"nodownload noremoteplayback"}
+            disablePictureInPicture
           />
+          <div>
+            <RadioGroupButtons
+              options={[1, 2, 4].map((v) => ({ label: `${v}x`, value: v }))}
+              onChange={(v) => setPlaybackRateCallback(Number(v))}
+            />
+          </div>
         </div>
         <div className={styles.section}>
           <EventTimeline

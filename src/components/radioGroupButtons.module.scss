@@ -1,0 +1,21 @@
+.radioGroupButtons {
+  display: flex;
+  gap: 1px;
+
+  button {
+
+    border-radius: 0 0 0 0;
+
+    &:first-child {
+      border-radius: 10px 0 0 10px;
+    }
+    &:last-child {
+      border-radius: 0 10px 10px 0;
+    }
+
+    &[data-state="checked"] {
+      background-color: var(--color-secondary);
+      color: var(--color-white);
+    }
+  }
+}

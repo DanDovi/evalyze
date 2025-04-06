@@ -24,7 +24,9 @@
 .videoContainer {
   position: relative;
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding: var(--spacing-md);
 
   background-color: var(--color-bg-accent-light);

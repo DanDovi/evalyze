@@ -88,6 +88,15 @@ export const EventTimeline = ({
 
   return (
     <div className={styles.eventTimeline}>
+      <div className={styles.timeMarkerContainer}>
+        <div
+          className={styles.currentTimeMarker}
+          style={{
+            left: `${(currentTime / videoDuration) * 100}%`,
+          }}
+        />
+      </div>
+
       <div
         className={styles.ruler}
         onClick={onRulerClick}
@@ -108,10 +117,29 @@ export const EventTimeline = ({
         })}
       </div>
 
-      <div>
-        {eventTypes.map((eventType) => {
-          return (
-            <div key={eventType.name} className={styles.eventTimelineRow}>
+      {eventTypes.map((eventType, i) => {
+        return (
+          <React.Fragment key={eventType.name}>
+            <div
+              key={eventType.name}
+              className={styles.eventTypeLabel}
+              style={{ gridRow: i + 2 }}
+            >
+              <span className={styles.eventName}>{eventType.name}</span>
+              <span className={styles.eventKey}>
+                Press{" "}
+                <div className={styles.keyIcon}>
+                  <div className={styles.keyInner}>
+                    {`${eventType.keyboardKey.toUpperCase()}`}
+                  </div>
+                </div>
+              </span>
+            </div>
+            <div
+              key={eventType.name}
+              className={styles.eventTimelineRow}
+              style={{ gridRow: i + 2 }}
+            >
               {reducedEvents[eventType.name]?.map((event) => {
                 return (
                   <div
@@ -125,16 +153,9 @@ export const EventTimeline = ({
                 );
               })}
             </div>
-          );
-        })}
-      </div>
-
-      <div
-        className={styles.currentTimeMarker}
-        style={{
-          left: `${(currentTime / videoDuration) * 100}%`,
-        }}
-      />
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };

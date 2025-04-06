@@ -30,9 +30,13 @@
     font-size: var(--font-size-xl);
   }
 
-  button {
+  .returnHome {
     background-color: var(--color-secondary);
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-lg);
+    color: var(--color-white);
+
+    text-decoration: none;
+    border-radius: var(--border-radius);
   }
 }

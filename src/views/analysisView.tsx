@@ -10,10 +10,10 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useHandleAnalysisControls } from "../hooks/useHandleAnalysisControls.ts";
 import { useAsyncError } from "../hooks/useAsyncError.ts";
 import { EventTimeline } from "../components/eventTimeline.tsx";
-
-import styles from "./analysisView.module.scss";
 import { RawEventPanel } from "../components/rawEventPanel.tsx";
 import { RadioGroupButtons } from "../components/radioGroupButtons.tsx";
+
+import styles from "./analysisView.module.scss";
 
 export const AnalysisView = () => {
   const { id } = useParams();
@@ -32,15 +32,10 @@ export const AnalysisView = () => {
       });
   }, [id, throwError]);
 
-  const {
-    capturedEvents,
-    setVideoRef,
-    videoRef,
-    currentRangeEventDurations,
-    currentPlaybackTime,
-  } = useHandleAnalysisControls({
-    events: analysis?.eventTypes ?? [],
-  });
+  const { capturedEvents, setVideoRef, videoRef, currentPlaybackTime } =
+    useHandleAnalysisControls({
+      events: analysis?.eventTypes ?? [],
+    });
 
   const setPlaybackRateCallback = useCallback(
     (rate: number) => {
@@ -103,8 +98,9 @@ export const AnalysisView = () => {
             controlsList={"nodownload noremoteplayback"}
             disablePictureInPicture
           />
-          <div>
+          <div className={styles.videoControls}>
             <RadioGroupButtons
+              value={playbackRate}
               options={[1, 2, 4].map((v) => ({ label: `${v}x`, value: v }))}
               onChange={(v) => setPlaybackRateCallback(Number(v))}
             />
@@ -119,48 +115,6 @@ export const AnalysisView = () => {
             videoRef={videoRef}
           />
         </div>
-        <h2>Event Types</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Key</th>
-            </tr>
-          </thead>
-          <tbody>
-            {analysis.eventTypes.map((event) => (
-              <tr key={event.id}>
-                <td>{event.name}</td>
-                <td>{event.category}</td>
-                <td>{event.keyboardKey}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <h2>Events</h2>
-        <h3>Current range events</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Event</th>
-              <th>Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentRangeEventDurations.map((event) => (
-              <tr key={event.eventTypeId}>
-                <td>
-                  {
-                    analysis?.eventTypes.find((e) => e.id === event.eventTypeId)
-                      ?.name
-                  }
-                </td>
-                <td>{formatSeconds(event.timeSinceStart)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
       <RawEventPanel
         analysisId={analysis.analysisData.id}

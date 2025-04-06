@@ -27,6 +27,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: var(--spacing-sm);
   padding: var(--spacing-md);
 
   background-color: var(--color-bg-accent-light);

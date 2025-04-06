@@ -6,11 +6,6 @@ use tauri::AppHandle;
 use tauri_plugin_dialog::DialogExt;
 use thiserror::Error;
 
-#[tauri::command]
-pub fn my_custom_command() {
-    println!("I was invoked from JavaScript!");
-}
-
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct AnalysisData {
     pub id: i64,

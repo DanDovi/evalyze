@@ -15,6 +15,7 @@ import {
   IEventControl,
   validateEvents,
 } from "../forms/createEventTypesForm.tsx";
+import { BiFilm } from "react-icons/bi";
 
 import styles from "./newFileView.module.scss";
 
@@ -113,7 +114,7 @@ export const NewFileView = () => {
             readOnly
           />
         </div>
-        <figure>
+        <figure className={styles.videoPreviewContainer}>
           <figcaption>Video preview</figcaption>
           <video
             className={styles.videoPreview}
@@ -121,13 +122,15 @@ export const NewFileView = () => {
             controls
             ref={videoRef}
           />
+          <button
+            type="button"
+            className={styles.selectVideoButton}
+            onClick={() => openFileDialog(openSingleVideoOpts)}
+          >
+            Select video
+            <BiFilm />
+          </button>
         </figure>
-        <button
-          type="button"
-          onClick={() => openFileDialog(openSingleVideoOpts)}
-        >
-          Select video
-        </button>
         <fieldset className={styles.events}>
           <legend>Events</legend>
           <CreateEventTypesForm events={events} onEventsChange={setEvents} />

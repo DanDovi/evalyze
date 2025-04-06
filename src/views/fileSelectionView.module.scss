@@ -9,6 +9,19 @@
     gap: var(--spacing-md);
 }
 
+.noAnalyses {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    background-color: var(--color-bg-accent-light);
+
+    font-size: var(--font-size-lg);
+}
+
 .newFileLink {
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius);
@@ -18,7 +31,6 @@
     align-items: center;
 
     gap: var(--spacing-xs);
-
 
     white-space: nowrap;
     text-decoration: none;

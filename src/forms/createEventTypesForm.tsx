@@ -101,6 +101,9 @@ export const CreateEventTypesForm = ({
                 placeholder="Name"
                 value={name}
                 onChange={(e) => onEventChange("name", e.target.value)}
+                autoCapitalize="off"
+                autoComplete="off"
+                spellCheck={false}
               />
             </span>
             <span>

@@ -17,6 +17,17 @@
       margin: 0;
     }
   }
+
+  legend, figcaption {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  label {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-xs);
+  }
 }
 
 .videoPreview {
@@ -47,6 +58,18 @@
   outline: none;
 }
 
+.videoPreviewContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+
+
+  video {
+    margin-bottom: var(--spacing-sm);
+  }
+}
+
 .eventRow {
   display: flex;
   justify-content: space-between;
@@ -61,8 +84,10 @@
   align-items: flex-start;
 }
 
-
+.selectVideoButton {
+  background-color: var(--color-secondary);
+}
 
 .submitButton {
-  margin-top: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }

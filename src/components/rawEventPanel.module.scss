@@ -27,6 +27,10 @@
     justify-content: space-between;
     align-items: center;
 
+    h2 {
+      white-space: nowrap;
+    }
+
     button {
       background-color: var(--color-secondary);
     }

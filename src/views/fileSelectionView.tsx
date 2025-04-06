@@ -37,11 +37,17 @@ export const FileSelectionView = () => {
       <button className={styles.newFileLink} onClick={onNewFile}>
         New analysis <FiPlus />
       </button>
-      <div className={styles.files}>
-        {analyses.map((a) => (
-          <FileSummary {...a} key={a.id} />
-        ))}
-      </div>
+      {analyses.length ? (
+        <div className={styles.files}>
+          {analyses.map((a) => (
+            <FileSummary {...a} key={a.id} />
+          ))}
+        </div>
+      ) : (
+        <div className={styles.noAnalyses}>
+          No analyses found. Create a new one to get started.
+        </div>
+      )}
     </div>
   );
 };

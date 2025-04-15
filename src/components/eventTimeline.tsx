@@ -5,13 +5,14 @@ import {
 import React from "react";
 
 import styles from "./eventTimeline.module.scss";
+import { IAnalysisVideoPlayerRef } from "./analysisVideoPlayer.tsx";
 
 interface IEventTimelineProps {
   eventTypes: AnalysisEventType[];
   events: AnalysisEventSummary[];
   videoDuration: number;
   currentTime: number;
-  videoRef?: React.RefObject<HTMLVideoElement>;
+  videoRef?: React.RefObject<IAnalysisVideoPlayerRef>;
 }
 
 type GroupedEvents = {
@@ -66,8 +67,7 @@ export const EventTimeline = ({
       const ruler = e.currentTarget;
       const clickX = e.clientX - ruler.getBoundingClientRect().left;
 
-      videoRef.current.currentTime =
-        (clickX / ruler.clientWidth) * videoDuration;
+      videoRef.current.seek((clickX / ruler.clientWidth) * videoDuration);
     },
     [videoRef, videoDuration],
   );
@@ -79,8 +79,7 @@ export const EventTimeline = ({
       if (mouseIsDown && videoRef?.current && ruler) {
         const ruler = e.currentTarget;
         const clickX = e.clientX - ruler.getBoundingClientRect().left;
-        videoRef.current.currentTime =
-          (clickX / ruler.clientWidth) * videoDuration;
+        videoRef.current.seek((clickX / ruler.clientWidth) * videoDuration);
       }
     },
     [videoDuration, videoRef],
@@ -135,11 +134,7 @@ export const EventTimeline = ({
                 </div>
               </span>
             </div>
-            <div
-              key={eventType.name}
-              className={styles.eventTimelineRow}
-              style={{ gridRow: i + 2 }}
-            >
+            <div className={styles.eventTimelineRow} style={{ gridRow: i + 2 }}>
               {reducedEvents[eventType.name]?.map((event) => {
                 return (
                   <div

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AnalysisWithEventTypes,
   getAnalysisById,
@@ -12,6 +12,9 @@ import { useAsyncError } from "../hooks/useAsyncError.ts";
 import { EventTimeline } from "../components/eventTimeline.tsx";
 import { RawEventPanel } from "../components/rawEventPanel.tsx";
 import { RadioGroupButtons } from "../components/radioGroupButtons.tsx";
+import { AnalysisVideoPlayer } from "../components/analysisVideoPlayer.tsx";
+
+import { useAsyncDialog } from "../hooks/useAsyncDialog.tsx";
 
 import styles from "./analysisView.module.scss";
 
@@ -23,6 +26,10 @@ export const AnalysisView = () => {
   const [analysis, setAnalysis] = useState<AnalysisWithEventTypes | null>(null);
   const [playbackRate, setPlaybackRate] = useState(1);
 
+  const [DialogComponent, { open, resolve }] = useAsyncDialog<
+    "ok" | "cancel"
+  >();
+
   useEffect(() => {
     if (!id) return;
     getAnalysisById(parseInt(id, 10))
@@ -32,43 +39,14 @@ export const AnalysisView = () => {
       });
   }, [id, throwError]);
 
-  const { capturedEvents, setVideoRef, videoRef, currentPlaybackTime } =
-    useHandleAnalysisControls({
-      events: analysis?.eventTypes ?? [],
-    });
-
-  const setPlaybackRateCallback = useCallback(
-    (rate: number) => {
-      if (!videoRef.current) return;
-      videoRef.current.playbackRate = rate;
-      setPlaybackRate(rate);
-    },
-    [videoRef],
-  );
-
-  // Handle playback rate changes from the video element
-  useEffect(() => {
-    if (!videoRef.current) return;
-
-    const onPlaybackRateChange = (rate: number) => {
-      const rates = [1, 2, 4];
-      if (!rates.includes(rate)) {
-        setPlaybackRateCallback(1);
-      }
-    };
-
-    const currentVideoRef = videoRef.current;
-
-    currentVideoRef.addEventListener("ratechange", () =>
-      onPlaybackRateChange(currentVideoRef.playbackRate),
-    );
-
-    return () => {
-      currentVideoRef.removeEventListener("ratechange", () =>
-        onPlaybackRateChange(currentVideoRef.playbackRate),
-      );
-    };
-  }, [playbackRate, setPlaybackRateCallback, videoRef]);
+  const {
+    capturedEvents,
+    videoRef,
+    currentPlaybackTime,
+    setCurrentPlaybackTime,
+  } = useHandleAnalysisControls({
+    events: analysis?.eventTypes ?? [],
+  });
 
   if (!analysis) return <div>Loading...</div>;
 
@@ -89,20 +67,19 @@ export const AnalysisView = () => {
           >
             Raw Events
           </button>
-          <video
-            ref={setVideoRef}
+          <AnalysisVideoPlayer
             className={styles.video}
             src={convertFileSrc(analysis.analysisData.path)}
-            playsInline
-            controls
-            controlsList={"nodownload noremoteplayback"}
-            disablePictureInPicture
+            ref={videoRef}
+            onPlaybackTimeUpdate={setCurrentPlaybackTime}
+            playbackRate={playbackRate}
+            onPlaybackRateChange={setPlaybackRate}
           />
           <div className={styles.videoControls}>
             <RadioGroupButtons
               value={playbackRate}
               options={[1, 2, 4].map((v) => ({ label: `${v}x`, value: v }))}
-              onChange={(v) => setPlaybackRateCallback(Number(v))}
+              onChange={(v) => setPlaybackRate(Number(v))}
             />
           </div>
         </div>
@@ -115,6 +92,14 @@ export const AnalysisView = () => {
             videoRef={videoRef}
           />
         </div>
+        <button
+          onClick={async () => {
+            const result = await open();
+            console.log(result);
+          }}
+        >
+          open dialog
+        </button>
       </div>
       <RawEventPanel
         analysisId={analysis.analysisData.id}
@@ -122,6 +107,16 @@ export const AnalysisView = () => {
         events={capturedEvents}
         isOpen={rawEventsOpen}
       />
+
+      <DialogComponent>
+        <button
+          onClick={() => {
+            resolve("cancel");
+          }}
+        >
+          ok
+        </button>
+      </DialogComponent>
     </div>
   );
 };

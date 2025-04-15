@@ -4,14 +4,15 @@ import {
 } from "../state/fileController.ts";
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { sortedInsert } from "../utils/arrays.ts";
+import { IAnalysisVideoPlayerRef } from "../components/analysisVideoPlayer.tsx";
 
 interface IUseHandleAnalysisControlsParams {
   events: AnalysisEventType[];
 }
 
-const toggleVideoPlay = (videoRef: RefObject<HTMLVideoElement>) => {
+const toggleVideoPlay = (videoRef: RefObject<IAnalysisVideoPlayerRef>) => {
   if (videoRef.current) {
-    if (videoRef.current.paused) {
+    if (videoRef.current.isPaused) {
       void videoRef.current.play();
     } else {
       videoRef.current.pause();
@@ -20,7 +21,7 @@ const toggleVideoPlay = (videoRef: RefObject<HTMLVideoElement>) => {
 };
 
 const getKeydownHandler = (
-  videoRef: RefObject<HTMLVideoElement>,
+  videoRef: RefObject<IAnalysisVideoPlayerRef>,
   events: AnalysisEventType[],
   addEvent: (event: AnalysisEventType) => void,
 ) => {
@@ -113,57 +114,10 @@ export const useHandleAnalysisControls = ({
     Array<AnalysisEventSummary>
   >([]);
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  const onVideoStart = useCallback(() => {
-    if (videoRef.current) {
-      setCurrentPlaybackTime(videoRef.current.currentTime);
-      intervalRef.current = setInterval(() => {
-        if (videoRef.current) {
-          console.log("updating current time");
-          setCurrentPlaybackTime(videoRef.current.currentTime);
-        }
-      }, 50);
-    }
-  }, []);
-
-  const onVideoStop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, []);
-
-  const onScrubVideo = useCallback(() => {
-    if (videoRef.current) {
-      console.log("scrubbing video");
-      setCurrentPlaybackTime(videoRef.current.currentTime);
-    }
-  }, []);
-
-  const setVideoRef = useCallback(
-    (node: HTMLVideoElement) => {
-      if (videoRef.current) {
-        videoRef.current.removeEventListener("play", onVideoStart);
-        videoRef.current.removeEventListener("pause", onVideoStop);
-        videoRef.current.removeEventListener("ended", onVideoStop);
-        videoRef.current.removeEventListener("seeked", onScrubVideo);
-      }
-      if (node) {
-        console.log("setting video ref");
-        node.addEventListener("play", onVideoStart);
-        node.addEventListener("pause", onVideoStop);
-        node.addEventListener("ended", onVideoStop);
-        node.addEventListener("seeked", onScrubVideo);
-      }
-      videoRef.current = node;
-    },
-    [onVideoStart, onVideoStop, onScrubVideo],
-  );
+  const videoRef = useRef<IAnalysisVideoPlayerRef>(null);
 
   const onAddEvent = useCallback((eventType: AnalysisEventType) => {
-    if (!videoRef.current || videoRef.current.paused) {
+    if (!videoRef.current || videoRef.current.isPaused) {
       return;
     }
 
@@ -206,10 +160,10 @@ export const useHandleAnalysisControls = ({
   }));
 
   return {
-    setVideoRef,
     videoRef,
     capturedEvents,
     currentRangeEventDurations,
+    setCurrentPlaybackTime,
     currentPlaybackTime,
   };
 };

@@ -107,6 +107,22 @@ const insertEventInOrder = (
   }
 };
 
+const getLastOpenEvent = (
+  eventTypeId: number,
+  events: AnalysisEventSummary[],
+  currentTime: number,
+): AnalysisEventSummary | null => {
+  const lastOpenEvent = events.find((e) => {
+    const isSameEventType = e.eventTypeId === eventTypeId;
+
+    if (!isSameEventType) return false;
+
+    return e.startTimestamp < currentTime && e.endTimestamp === undefined;
+  });
+
+  return lastOpenEvent || null;
+};
+
 export const useHandleAnalysisControls = ({
   events,
 }: IUseHandleAnalysisControlsParams) => {
@@ -116,24 +132,54 @@ export const useHandleAnalysisControls = ({
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
   const videoRef = useRef<IAnalysisVideoPlayerRef>(null);
 
-  const onAddEvent = useCallback((eventType: AnalysisEventType) => {
-    if (!videoRef.current || videoRef.current.isPaused) {
-      return;
-    }
+  const addNewEvent = useCallback(
+    (
+      eventTypeId: number,
+      category: AnalysisEventSummary["category"],
+      startTimestamp: number,
+    ) => {
+      const newEvent: AnalysisEventSummary = {
+        eventTypeId,
+        category,
+        startTimestamp,
+      };
 
-    const currentTime = videoRef.current.currentTime;
+      setCapturedEvents((prev) => {
+        return insertEventInOrder(prev, newEvent);
+      });
+    },
+    [setCapturedEvents],
+  );
 
-    const { id, category } = eventType;
-    const newEvent: AnalysisEventSummary = {
-      eventTypeId: id,
-      category,
-      startTimestamp: currentTime,
-    };
+  const onAddEvent = useCallback(
+    (eventType: AnalysisEventType) => {
+      if (!videoRef.current || videoRef.current.isPaused) {
+        return;
+      }
 
-    setCapturedEvents((prev) => {
-      return insertEventInOrder(prev, newEvent);
-    });
-  }, []);
+      const currentTime = videoRef.current.currentTime;
+
+      const { id, category } = eventType;
+
+      if (category === "single") {
+        addNewEvent(id, category, currentTime);
+        return;
+      }
+
+      const lastOpenEvent = getLastOpenEvent(id, capturedEvents, currentTime);
+
+      const newEvent: AnalysisEventSummary = {
+        eventId: lastOpenEvent ? lastOpenEvent.eventId : "",
+        eventTypeId: id,
+        category,
+        startTimestamp: lastOpenEvent
+          ? lastOpenEvent.startTimestamp
+          : currentTime,
+        endTimestamp: lastOpenEvent ? currentTime : undefined,
+      };
+    },
+    [addNewEvent, capturedEvents],
+  );
 
   useEffect(() => {
     const keyHandler = getKeydownHandler(videoRef, events, onAddEvent);

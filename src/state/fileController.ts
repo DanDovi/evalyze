@@ -6,6 +6,8 @@ import {
   unRustifyObject,
 } from "../utils/rusitfy.ts";
 
+export type EventCategory = "single" | "range";
+
 export type Analysis = {
   id: number;
   name: string;
@@ -21,12 +23,13 @@ export type AnalysisEventType = {
   analysisId: string;
   keyboardKey: string;
   name: string;
-  category: "single" | "range";
+  category: EventCategory;
 };
 
 export type AnalysisEventSummary = {
+  eventId: string;
   eventTypeId: number;
-  category: "single" | "range";
+  category: EventCategory;
   startTimestamp: number;
   endTimestamp?: number;
 };

@@ -186,10 +186,23 @@ export const useHandleAnalysisControls = ({
     };
   }, [events, onAddEvent]);
 
+  const inProgressEventDurations = Object.values(capturedEvents).reduce(
+    (acc, events) => {
+      const rangeEvents = events.filter(
+        (e) => e.category === "range" && !e.endTimestamp,
+      );
+      const durations = rangeEvents.map((e) => {
+        return currentPlaybackTime - e.startTimestamp;
+      });
+      return [...acc, ...durations];
+    },
+    [] as number[],
+  );
+
   return {
     videoRef,
     capturedEvents,
-    currentRangeEventDurations: [],
+    inProgressEventDurations,
     setCurrentPlaybackTime,
     currentPlaybackTime,
     removeEvent,

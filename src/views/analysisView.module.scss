@@ -43,6 +43,11 @@
   }
 }
 
+.inProgressWarning {
+  font-size: var(--font-size-sm);
+  color: var(--color-negative);
+}
+
 .rawEventsButton {
   position: absolute;
   top: 50%;

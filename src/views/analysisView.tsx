@@ -14,6 +14,7 @@ import { RawEventPanel } from "../components/rawEventPanel.tsx";
 import { RadioGroupButtons } from "../components/radioGroupButtons.tsx";
 import { AnalysisVideoPlayer } from "../components/analysisVideoPlayer.tsx";
 import { groupedEventsToArray } from "../utils/events.ts";
+import cn from "classnames";
 
 import styles from "./analysisView.module.scss";
 
@@ -40,7 +41,8 @@ export const AnalysisView = () => {
     videoRef,
     currentPlaybackTime,
     setCurrentPlaybackTime,
-    removeEvent
+    inProgressEventDurations,
+    removeEvent,
   } = useHandleAnalysisControls({
     events: analysis?.eventTypes ?? [],
   });
@@ -90,6 +92,13 @@ export const AnalysisView = () => {
             currentTime={currentPlaybackTime}
             videoRef={videoRef}
           />
+        </div>
+        <div className={cn(styles.section, styles.inProgressWarning)}>
+          {!isPlaying && inProgressEventDurations.length > 0 && (
+            <p>
+              {`You have ${inProgressEventDurations.length} in-progress events. Please finish them before exporting.`}
+            </p>
+          )}
         </div>
       </div>
       <RawEventPanel

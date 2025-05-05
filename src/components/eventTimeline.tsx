@@ -9,15 +9,11 @@ import { IAnalysisVideoPlayerRef } from "./analysisVideoPlayer.tsx";
 
 interface IEventTimelineProps {
   eventTypes: AnalysisEventType[];
-  events: AnalysisEventSummary[];
+  events: Record<number, AnalysisEventSummary[]>;
   videoDuration: number;
   currentTime: number;
   videoRef?: React.RefObject<IAnalysisVideoPlayerRef>;
 }
-
-type GroupedEvents = {
-  [key: string]: AnalysisEventSummary[];
-};
 
 const getEventWidth = (
   event: AnalysisEventSummary,
@@ -37,24 +33,6 @@ export const EventTimeline = ({
   currentTime,
   videoRef,
 }: IEventTimelineProps) => {
-  const reducedEvents = React.useMemo(
-    () =>
-      events.reduce<GroupedEvents>((acc, event) => {
-        const eventType = eventTypes.find(
-          (type) => type.id === event.eventTypeId,
-        );
-        if (!eventType) return acc;
-
-        if (!acc[eventType.name]) {
-          acc[eventType.name] = [];
-        }
-
-        acc[eventType.name].push(event);
-        return acc;
-      }, {} as GroupedEvents),
-    [events, eventTypes],
-  );
-
   // TODO: Make this work better for longer and shorter videos
   const timeTicks = React.useMemo(() => {
     return Array.from({ length: Math.floor(videoDuration) }, (_, i) => i);
@@ -135,7 +113,7 @@ export const EventTimeline = ({
               </span>
             </div>
             <div className={styles.eventTimelineRow} style={{ gridRow: i + 2 }}>
-              {reducedEvents[eventType.name]?.map((event) => {
+              {events[eventType.id]?.map((event) => {
                 return (
                   <div
                     key={event.startTimestamp}

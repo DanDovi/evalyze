@@ -5,6 +5,7 @@ import {
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { sortedInsert } from "../utils/arrays.ts";
 import { IAnalysisVideoPlayerRef } from "../components/analysisVideoPlayer.tsx";
+import { v4 } from "uuid";
 
 interface IUseHandleAnalysisControlsParams {
   events: AnalysisEventType[];
@@ -127,8 +128,8 @@ export const useHandleAnalysisControls = ({
   events,
 }: IUseHandleAnalysisControlsParams) => {
   const [capturedEvents, setCapturedEvents] = useState<
-    Array<AnalysisEventSummary>
-  >([]);
+    Record<number, AnalysisEventSummary[]>
+  >({});
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
   const videoRef = useRef<IAnalysisVideoPlayerRef>(null);
 
@@ -139,16 +140,23 @@ export const useHandleAnalysisControls = ({
       startTimestamp: number,
     ) => {
       const newEvent: AnalysisEventSummary = {
+        eventId: v4(),
         eventTypeId,
         category,
         startTimestamp,
       };
 
-      setCapturedEvents((prev) => {
-        return insertEventInOrder(prev, newEvent);
-      });
+      const newEvents = insertEventInOrder(
+        capturedEvents[eventTypeId] || [],
+        newEvent,
+      );
+
+      setCapturedEvents((prev) => ({
+        ...prev,
+        [eventTypeId]: newEvents,
+      }));
     },
-    [setCapturedEvents],
+    [capturedEvents],
   );
 
   const onAddEvent = useCallback(
@@ -166,7 +174,11 @@ export const useHandleAnalysisControls = ({
         return;
       }
 
-      const lastOpenEvent = getLastOpenEvent(id, capturedEvents, currentTime);
+      const lastOpenEvent = getLastOpenEvent(
+        id,
+        capturedEvents[eventType.id] ?? [],
+        currentTime,
+      );
 
       const newEvent: AnalysisEventSummary = {
         eventId: lastOpenEvent ? lastOpenEvent.eventId : "",
@@ -190,25 +202,25 @@ export const useHandleAnalysisControls = ({
     };
   }, [events, onAddEvent]);
 
-  const currentRangeEvents = capturedEvents.filter((e) => {
-    if (e.category === "single" || !videoRef.current) return false;
-    const currentTime = videoRef.current.currentTime;
-
-    const startHasPassed = e.startTimestamp < currentTime;
-    const endHasPassed = e.endTimestamp && e.endTimestamp < currentTime;
-
-    return startHasPassed && !endHasPassed;
-  });
-
-  const currentRangeEventDurations = currentRangeEvents.map((e) => ({
-    eventTypeId: e.eventTypeId,
-    timeSinceStart: currentPlaybackTime - e.startTimestamp,
-  }));
+  // const currentRangeEvents = capturedEvents.filter((e) => {
+  //   if (e.category === "single" || !videoRef.current) return false;
+  //   const currentTime = videoRef.current.currentTime;
+  //
+  //   const startHasPassed = e.startTimestamp < currentTime;
+  //   const endHasPassed = e.endTimestamp && e.endTimestamp < currentTime;
+  //
+  //   return startHasPassed && !endHasPassed;
+  // });
+  //
+  // const currentRangeEventDurations = currentRangeEvents.map((e) => ({
+  //   eventTypeId: e.eventTypeId,
+  //   timeSinceStart: currentPlaybackTime - e.startTimestamp,
+  // }));
 
   return {
     videoRef,
     capturedEvents,
-    currentRangeEventDurations,
+    currentRangeEventDurations: [],
     setCurrentPlaybackTime,
     currentPlaybackTime,
   };

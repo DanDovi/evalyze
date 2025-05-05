@@ -17,6 +17,7 @@ import { AnalysisVideoPlayer } from "../components/analysisVideoPlayer.tsx";
 import { useAsyncDialog } from "../hooks/useAsyncDialog.tsx";
 
 import styles from "./analysisView.module.scss";
+import { groupedEventsToArray } from "../utils/events.ts";
 
 export const AnalysisView = () => {
   const { id } = useParams();
@@ -104,7 +105,7 @@ export const AnalysisView = () => {
       <RawEventPanel
         analysisId={analysis.analysisData.id}
         eventTypes={analysis.eventTypes}
-        events={capturedEvents}
+        events={groupedEventsToArray(capturedEvents)}
         isOpen={rawEventsOpen}
       />
 

@@ -13,11 +13,9 @@ import { EventTimeline } from "../components/eventTimeline.tsx";
 import { RawEventPanel } from "../components/rawEventPanel.tsx";
 import { RadioGroupButtons } from "../components/radioGroupButtons.tsx";
 import { AnalysisVideoPlayer } from "../components/analysisVideoPlayer.tsx";
-
-import { useAsyncDialog } from "../hooks/useAsyncDialog.tsx";
+import { groupedEventsToArray } from "../utils/events.ts";
 
 import styles from "./analysisView.module.scss";
-import { groupedEventsToArray } from "../utils/events.ts";
 
 export const AnalysisView = () => {
   const { id } = useParams();
@@ -26,10 +24,7 @@ export const AnalysisView = () => {
   const [rawEventsOpen, setRawEventsOpen] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisWithEventTypes | null>(null);
   const [playbackRate, setPlaybackRate] = useState(1);
-
-  const [DialogComponent, { open, resolve }] = useAsyncDialog<
-    "ok" | "cancel"
-  >();
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -45,6 +40,7 @@ export const AnalysisView = () => {
     videoRef,
     currentPlaybackTime,
     setCurrentPlaybackTime,
+    removeEvent
   } = useHandleAnalysisControls({
     events: analysis?.eventTypes ?? [],
   });
@@ -75,6 +71,8 @@ export const AnalysisView = () => {
             onPlaybackTimeUpdate={setCurrentPlaybackTime}
             playbackRate={playbackRate}
             onPlaybackRateChange={setPlaybackRate}
+            onVideoStart={() => setIsPlaying(true)}
+            onVideoStop={() => setIsPlaying(false)}
           />
           <div className={styles.videoControls}>
             <RadioGroupButtons
@@ -93,31 +91,15 @@ export const AnalysisView = () => {
             videoRef={videoRef}
           />
         </div>
-        <button
-          onClick={async () => {
-            const result = await open();
-            console.log(result);
-          }}
-        >
-          open dialog
-        </button>
       </div>
       <RawEventPanel
         analysisId={analysis.analysisData.id}
         eventTypes={analysis.eventTypes}
         events={groupedEventsToArray(capturedEvents)}
+        isPlaying={isPlaying}
         isOpen={rawEventsOpen}
+        onDeleteEvent={removeEvent}
       />
-
-      <DialogComponent>
-        <button
-          onClick={() => {
-            resolve("cancel");
-          }}
-        >
-          ok
-        </button>
-      </DialogComponent>
     </div>
   );
 };

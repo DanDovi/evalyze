@@ -3,9 +3,13 @@ import {
   AnalysisEventType,
 } from "../state/fileController.ts";
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { sortedInsert } from "../utils/arrays.ts";
 import { IAnalysisVideoPlayerRef } from "../components/analysisVideoPlayer.tsx";
 import { v4 } from "uuid";
+import {
+  getOverlappedEvents,
+  insertEventInOrder,
+  mergeEvents,
+} from "../utils/events.ts";
 
 interface IUseHandleAnalysisControlsParams {
   events: AnalysisEventType[];
@@ -48,66 +52,6 @@ const getKeydownHandler = (
   };
 };
 
-const insertSingleEventInOrder = (
-  events: AnalysisEventSummary[],
-  newEvent: AnalysisEventSummary,
-) => {
-  if (newEvent.category !== "single") {
-    return events;
-  }
-
-  return sortedInsert(events, newEvent, "startTimestamp");
-};
-
-const insertRangeEventInOrder = (
-  events: AnalysisEventSummary[],
-  newEvent: AnalysisEventSummary,
-) => {
-  if (newEvent.category !== "range") {
-    return events;
-  }
-
-  const inProgressEvent = events.findIndex((e) => {
-    const isSameEventType = e.eventTypeId === newEvent.eventTypeId;
-
-    if (!isSameEventType) return false;
-
-    const isOpenEvent =
-      e.startTimestamp < newEvent.startTimestamp &&
-      e.endTimestamp === undefined;
-
-    const containsEvent =
-      e.endTimestamp &&
-      e.startTimestamp < newEvent.startTimestamp &&
-      e.endTimestamp > newEvent.startTimestamp;
-
-    return isOpenEvent || containsEvent;
-  });
-
-  if (inProgressEvent >= 0) {
-    const array = [...events];
-
-    array[inProgressEvent] = {
-      ...array[inProgressEvent],
-      endTimestamp: newEvent.startTimestamp,
-    };
-    return array;
-  }
-
-  return sortedInsert(events, newEvent, "startTimestamp");
-};
-
-const insertEventInOrder = (
-  events: AnalysisEventSummary[],
-  newEvent: AnalysisEventSummary,
-) => {
-  if (newEvent.category === "range") {
-    return insertRangeEventInOrder(events, newEvent);
-  } else {
-    return insertSingleEventInOrder(events, newEvent);
-  }
-};
-
 const getLastOpenEvent = (
   eventTypeId: number,
   events: AnalysisEventSummary[],
@@ -124,6 +68,18 @@ const getLastOpenEvent = (
   return lastOpenEvent || null;
 };
 
+const createNewEvent = (
+  eventType: AnalysisEventType,
+  currentTime: number,
+): AnalysisEventSummary => {
+  return {
+    eventId: v4(),
+    eventTypeId: eventType.id,
+    category: eventType.category,
+    startTimestamp: currentTime,
+  };
+};
+
 export const useHandleAnalysisControls = ({
   events,
 }: IUseHandleAnalysisControlsParams) => {
@@ -133,31 +89,34 @@ export const useHandleAnalysisControls = ({
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
   const videoRef = useRef<IAnalysisVideoPlayerRef>(null);
 
-  const addNewEvent = useCallback(
-    (
-      eventTypeId: number,
-      category: AnalysisEventSummary["category"],
-      startTimestamp: number,
-    ) => {
-      const newEvent: AnalysisEventSummary = {
-        eventId: v4(),
-        eventTypeId,
-        category,
-        startTimestamp,
-      };
+  const upsertEvent = useCallback((updatedEvent: AnalysisEventSummary) => {
+    setCapturedEvents((prev) => {
+      const events = prev[updatedEvent.eventTypeId] || [];
 
       const newEvents = insertEventInOrder(
-        capturedEvents[eventTypeId] || [],
-        newEvent,
+        events.filter((e) => e.eventId !== updatedEvent.eventId),
+        updatedEvent,
       );
 
-      setCapturedEvents((prev) => ({
+      return {
+        ...prev,
+        [updatedEvent.eventTypeId]: newEvents,
+      };
+    });
+  }, []);
+
+  const removeEvent = useCallback((eventId: string, eventTypeId: number) => {
+    setCapturedEvents((prev) => {
+      const events = prev[eventTypeId] || [];
+
+      const newEvents = events.filter((e) => e.eventId !== eventId);
+
+      return {
         ...prev,
         [eventTypeId]: newEvents,
-      }));
-    },
-    [capturedEvents],
-  );
+      };
+    });
+  }, []);
 
   const onAddEvent = useCallback(
     (eventType: AnalysisEventType) => {
@@ -167,30 +126,55 @@ export const useHandleAnalysisControls = ({
 
       const currentTime = videoRef.current.currentTime;
 
-      const { id, category } = eventType;
+      const { id: eventTypeId, category } = eventType;
 
       if (category === "single") {
-        addNewEvent(id, category, currentTime);
+        upsertEvent(createNewEvent(eventType, currentTime));
         return;
       }
 
       const lastOpenEvent = getLastOpenEvent(
-        id,
+        eventTypeId,
         capturedEvents[eventType.id] ?? [],
         currentTime,
       );
 
-      const newEvent: AnalysisEventSummary = {
-        eventId: lastOpenEvent ? lastOpenEvent.eventId : "",
-        eventTypeId: id,
-        category,
-        startTimestamp: lastOpenEvent
-          ? lastOpenEvent.startTimestamp
-          : currentTime,
-        endTimestamp: lastOpenEvent ? currentTime : undefined,
+      if (!lastOpenEvent) {
+        upsertEvent(createNewEvent(eventType, currentTime));
+        return;
+      }
+
+      const updatedEvent: AnalysisEventSummary = {
+        ...lastOpenEvent,
+        endTimestamp: currentTime,
       };
+
+      const overlappingEvents = getOverlappedEvents(
+        updatedEvent,
+        capturedEvents[eventType.id].filter(
+          (e) => e.eventId !== lastOpenEvent.eventId,
+        ) ?? [],
+      );
+
+      if (overlappingEvents.length === 0) {
+        upsertEvent(updatedEvent);
+        return;
+      }
+
+      const overlappedEvents = [...overlappingEvents, updatedEvent];
+      const mergedEvents = mergeEvents([...overlappingEvents, updatedEvent]);
+
+      const eventsToRemove = overlappedEvents.filter(
+        (e) => !mergedEvents.some((me) => me.eventId === e.eventId),
+      );
+
+      eventsToRemove.forEach((event) =>
+        removeEvent(event.eventId, eventTypeId),
+      );
+
+      mergedEvents.forEach((mergedEvent) => upsertEvent(mergedEvent));
     },
-    [addNewEvent, capturedEvents],
+    [capturedEvents, removeEvent, upsertEvent],
   );
 
   useEffect(() => {
@@ -202,26 +186,12 @@ export const useHandleAnalysisControls = ({
     };
   }, [events, onAddEvent]);
 
-  // const currentRangeEvents = capturedEvents.filter((e) => {
-  //   if (e.category === "single" || !videoRef.current) return false;
-  //   const currentTime = videoRef.current.currentTime;
-  //
-  //   const startHasPassed = e.startTimestamp < currentTime;
-  //   const endHasPassed = e.endTimestamp && e.endTimestamp < currentTime;
-  //
-  //   return startHasPassed && !endHasPassed;
-  // });
-  //
-  // const currentRangeEventDurations = currentRangeEvents.map((e) => ({
-  //   eventTypeId: e.eventTypeId,
-  //   timeSinceStart: currentPlaybackTime - e.startTimestamp,
-  // }));
-
   return {
     videoRef,
     capturedEvents,
     currentRangeEventDurations: [],
     setCurrentPlaybackTime,
     currentPlaybackTime,
+    removeEvent,
   };
 };

@@ -36,6 +36,11 @@
     }
   }
 
+  .deleteButton {
+    background-color: var(--color-negative);
+    padding: var(--spacing-xs);
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;

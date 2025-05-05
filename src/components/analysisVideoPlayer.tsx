@@ -15,7 +15,7 @@ export interface IAnalysisVideoPlayerRef {
   currentTime: number;
 }
 
-export interface IAnalysosVideoPlayerProps {
+export interface IAnalysisVideoPlayerProps {
   className?: string;
   playbackRate?: number;
   onPlaybackRateChange?: (playbackRate: number) => void;
@@ -27,7 +27,7 @@ export interface IAnalysosVideoPlayerProps {
 
 export const AnalysisVideoPlayer = forwardRef<
   IAnalysisVideoPlayerRef,
-  IAnalysosVideoPlayerProps
+  IAnalysisVideoPlayerProps
 >(
   (
     {

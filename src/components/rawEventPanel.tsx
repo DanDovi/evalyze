@@ -1,18 +1,20 @@
+import React from "react";
 import {
   AnalysisEventSummary,
   AnalysisEventType,
   saveEventsToCsv,
 } from "../state/fileController.ts";
-import React from "react";
+import { FiDownload, FiTrash } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 import styles from "./rawEventPanel.module.scss";
-import { FiDownload } from "react-icons/fi";
-import { toast } from "react-toastify";
 
 interface IRawEventPanelProps {
   analysisId: number;
   eventTypes: AnalysisEventType[];
   events: AnalysisEventSummary[];
+  onDeleteEvent: (eventId: string, eventTypeId: number) => void;
+  isPlaying?: boolean;
   isOpen?: boolean;
 }
 
@@ -20,6 +22,8 @@ export const RawEventPanel = ({
   analysisId,
   events,
   eventTypes,
+  onDeleteEvent,
+  isPlaying,
   isOpen,
 }: IRawEventPanelProps) => {
   const eventNames = React.useMemo(() => {
@@ -32,6 +36,15 @@ export const RawEventPanel = ({
     );
   }, [eventTypes]);
 
+  const hasInProgressEvents = React.useMemo(() => {
+    return events.some(
+      (event) => event.category === "range" && !event.endTimestamp,
+    );
+  }, [events]);
+
+  const exportButtonDisabled =
+    events.length === 0 || !analysisId || isPlaying || hasInProgressEvents;
+
   return (
     <div className={styles.rawEventPanel} data-open={isOpen}>
       <div className={styles.header}>
@@ -39,6 +52,7 @@ export const RawEventPanel = ({
         <button
           type="button"
           className={styles.exportButton}
+          disabled={exportButtonDisabled}
           onClick={async () =>
             saveEventsToCsv(analysisId, events)
               .then(() => {
@@ -60,6 +74,7 @@ export const RawEventPanel = ({
               <th>Event Type</th>
               <th>Start Time (s)</th>
               <th>End Time (s)</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -72,6 +87,17 @@ export const RawEventPanel = ({
                   <td>{eventName}</td>
                   <td>{event.startTimestamp.toFixed(2)}</td>
                   <td>{event.endTimestamp?.toFixed(2) ?? ""}</td>
+                  <td>
+                    <button
+                      className={styles.deleteButton}
+                      disabled={isPlaying}
+                      onClick={() =>
+                        onDeleteEvent(event.eventId, event.eventTypeId)
+                      }
+                    >
+                      <FiTrash />
+                    </button>
+                  </td>
                 </tr>
               );
             })}
